@@ -236,7 +236,6 @@ class MSTMModel:
             torch_dtype=torch.float16 if device == "cuda" else torch.float32,
             trust_remote_code=True,
             device_map="auto" if device == "cuda" else None,
-            local_files_only=True,
         )
 
         # torch.compile for faster inference
