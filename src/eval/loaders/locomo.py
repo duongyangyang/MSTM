@@ -245,6 +245,9 @@ def build_memory_batched(
 
     has_batch = hasattr(method, "transition_batch")
 
+    from tqdm import tqdm
+    pbar = tqdm(total=max_sessions, desc="  Building memory", unit="sess") if verbose else None
+
     for step in range(max_sessions):
         # Collect conversations that have this session
         active_indices = []
@@ -258,11 +261,12 @@ def build_memory_batched(
                 active_deltas.append(conv_deltas[conv_idx][step])
 
         if not active_indices:
+            if pbar:
+                pbar.update(1)
             continue
 
-        if verbose and (step == 0 or step == max_sessions - 1 or (step + 1) % 10 == 0):
-            print(f"  Session {step+1}/{max_sessions}: "
-                  f"processing {len(active_indices)} conversations in batch")
+        if pbar:
+            pbar.set_postfix({"conv": len(active_indices)})
 
         if has_batch:
             # Batched generation — all active conversations in one pass
@@ -281,6 +285,12 @@ def build_memory_batched(
         # Update memories
         for i, conv_idx in enumerate(active_indices):
             memories[conv_idx] = new_memories[i]
+
+        if pbar:
+            pbar.update(1)
+
+    if pbar:
+        pbar.close()
 
     return memories
 

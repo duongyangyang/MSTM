@@ -1,0 +1,46 @@
+{
+  "input_dir": "data/raw",
+  "total_loaded": 8339,
+  "total_valid": 8338,
+  "split_ratios": {
+    "train": 0.8,
+    "val": 0.1,
+    "test": 0.1
+  },
+  "seed": 42,
+  "splits": {
+    "train": 6670,
+    "val": 834,
+    "test": 834
+  },
+  "category_distribution": {
+    "overall": {
+      "abstraction": 1650,
+      "consolidation": 1844,
+      "contradiction_resolution": 1559,
+      "forgetting": 1459,
+      "update": 1826
+    },
+    "train": {
+      "update": 1461,
+      "abstraction": 1320,
+      "forgetting": 1167,
+      "contradiction_resolution": 1247,
+      "consolidation": 1475
+    },
+    "val": {
+      "update": 183,
+      "contradiction_resolution": 156,
+      "abstraction": 165,
+      "forgetting": 146,
+      "consolidation": 184
+    },
+    "test": {
+      "update": 182,
+      "abstraction": 165,
+      "forgetting": 146,
+      "consolidation": 185,
+      "contradiction_resolution": 156
+    }
+  }
+}

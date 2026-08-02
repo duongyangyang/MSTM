@@ -1,0 +1,56 @@
+{
+  "results": [
+    {
+      "benchmark": "locomo",
+      "method": "heuristic_consolidation",
+      "num_samples": 5,
+      "qa": {
+        "em": 0.0,
+        "f1": 0.26361904761904764,
+        "count": 5
+      },
+      "efficiency": {
+        "avg_original_records": 211.0,
+        "avg_transformed_records": 209.0,
+        "avg_original_tokens": 5623.0,
+        "avg_transformed_tokens": 5795.0,
+        "compression_ratio": 1.0305886537435534,
+        "count": 5
+      },
+      "consistency": {
+        "contradiction_rate": 0.004784688995215311,
+        "redundancy_rate": 0.028708133971291867,
+        "total_contradictions": 5,
+        "total_redundancies": 30,
+        "count": 5
+      },
+      "temporal": {
+        "overall_f1": 0.26361904761904764,
+        "count": 5,
+        "temporal_f1": 0.08,
+        "temporal_count": 1,
+        "update_sensitive_f1": 0.0,
+        "update_sensitive_count": 0
+      },
+      "avg_latency_ms": 10957.758092880249,
+      "timestamp": "2026-08-02T06:04:31.788968"
+    }
+  ],
+  "cost_summary": {
+    "gpu_hours": 0.0,
+    "num_training_examples": 0,
+    "avg_inference_latency_ms": 10957.758092880249,
+    "num_inference_samples": 5
+  },
+  "config": {
+    "methods": [
+      "heuristic_consolidation"
+    ],
+    "benchmarks": [
+      "locomo"
+    ],
+    "reader_model": "gpt-4o",
+    "max_samples": 5,
+    "timestamp": "20260802_060431"
+  }
+}
