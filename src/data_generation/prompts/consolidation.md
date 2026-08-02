@@ -80,4 +80,6 @@ Generate 100 diverse examples for the "consolidation" category. Each example on 
 
 **CRITICAL:** M_prime must be visibly shorter than M. Count the characters — if M has 200 chars across 4 bullets, M_prime should have ~120 chars across 2-3 bullets. Use concise bullet points. No narrative prose.
 
+{domain_instruction}
+
 Output ONLY valid JSONL — one JSON object per line, no markdown fences, no commentary.

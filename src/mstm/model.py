@@ -101,6 +101,7 @@ class MSTMModel:
         lora_alpha: int = 32,
         lora_dropout: float = 0.05,
         max_seq_length: int = 2048,
+        compile_model: bool = True,
     ):
         """
         Initialize the MSTM model.
@@ -113,10 +114,13 @@ class MSTMModel:
             lora_alpha: LoRA alpha scaling factor.
             lora_dropout: LoRA dropout rate.
             max_seq_length: Maximum sequence length for tokenization.
+            compile_model: Whether to torch.compile the model for faster
+                          inference (2-3x speedup for small models on GPU).
         """
         self.backbone_name = backbone
         self.max_seq_length = max_seq_length
         self.use_lora = use_lora
+        self._compiled = compile_model
 
         if device is None:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -148,6 +152,20 @@ class MSTMModel:
         if self.device == "cpu" and not use_lora:
             self.model = self.model.to(self.device)
 
+        # torch.compile for faster inference on GPU
+        if compile_model and self.device == "cuda":
+            print("Compiling model with torch.compile (mode='reduce-overhead')...")
+            try:
+                self.model = torch.compile(
+                    self.model,
+                    mode="reduce-overhead",
+                    fullgraph=False,
+                )
+                print("  Model compiled successfully.")
+            except Exception as e:
+                print(f"  torch.compile failed ({e}), falling back to eager mode.")
+                self._compiled = False
+
     def _apply_lora(self, r: int, alpha: int, dropout: float):
         """Apply LoRA adapters to the model."""
         try:
@@ -177,13 +195,19 @@ class MSTMModel:
         print(f"Model saved to {path}")
 
     @classmethod
-    def from_pretrained(cls, path: str, device: str = None):
+    def from_pretrained(
+        cls,
+        path: str,
+        device: str = None,
+        compile_model: bool = True,
+    ):
         """
         Load a trained MSTM checkpoint.
 
         Args:
             path: Path to the saved model directory.
             device: Device to load on.
+            compile_model: Whether to torch.compile the model.
 
         Returns:
             MSTMModel instance.
@@ -195,6 +219,7 @@ class MSTMModel:
         instance.device = device
         instance.max_seq_length = 2048
         instance.use_lora = True  # Assume LoRA was used
+        instance._compiled = compile_model
 
         print(f"Loading tokenizer from: {path}")
         instance.tokenizer = AutoTokenizer.from_pretrained(path)
@@ -209,6 +234,20 @@ class MSTMModel:
             trust_remote_code=True,
             device_map="auto" if device == "cuda" else None,
         )
+
+        # torch.compile for faster inference
+        if compile_model and device == "cuda":
+            print("Compiling model with torch.compile (mode='reduce-overhead')...")
+            try:
+                instance.model = torch.compile(
+                    instance.model,
+                    mode="reduce-overhead",
+                    fullgraph=False,
+                )
+                print("  Model compiled successfully.")
+            except Exception as e:
+                print(f"  torch.compile failed ({e}), falling back to eager mode.")
+                instance._compiled = False
 
         return instance
 
@@ -261,3 +300,90 @@ class MSTMModel:
         )
 
         return result.strip()
+
+    @torch.no_grad()
+    def generate_batch(
+        self,
+        M_list: list,
+        delta_M_list: list,
+        max_new_tokens: int = 512,
+        temperature: float = 0.0,
+        do_sample: bool = False,
+        batch_size: int = None,
+    ) -> list:
+        """
+        Generate M_prime for multiple (M, delta_M) pairs in a single batched
+        forward pass. This is the key optimization for GPU utilization —
+        a 0.6B model on a 24GB GPU can process 16–32 samples simultaneously.
+
+        Args:
+            M_list: List of current memory states.
+            delta_M_list: List of new information (same length as M_list).
+            max_new_tokens: Maximum tokens to generate per sample.
+            temperature: Sampling temperature (0.0 = greedy).
+            do_sample: Whether to use sampling.
+            batch_size: Max samples per forward pass (None = auto from VRAM
+                        or process all at once). For a 0.6B model on 24GB,
+                        defaults to 16.
+
+        Returns:
+            List of generated M_prime strings (same order as input).
+        """
+        assert len(M_list) == len(delta_M_list), (
+            f"M_list ({len(M_list)}) and delta_M_list ({len(delta_M_list)}) "
+            f"must have the same length"
+        )
+
+        if batch_size is None:
+            # Default: 16 is safe for 0.6B on 24GB; auto-scale up for bigger GPUs
+            batch_size = 16
+
+        all_results = []
+
+        for batch_start in range(0, len(M_list), batch_size):
+            batch_end = min(batch_start + batch_size, len(M_list))
+            batch_M = M_list[batch_start:batch_end]
+            batch_delta = delta_M_list[batch_start:batch_end]
+
+            # Format all prompts
+            prompts = [
+                format_transition_prompt(M, delta_M, for_training=False)
+                for M, delta_M in zip(batch_M, batch_delta)
+            ]
+
+            # Batch-tokenize with padding
+            inputs = self.tokenizer(
+                prompts,
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=self.max_seq_length,
+            ).to(self.device)
+
+            # Batched generation
+            outputs = self.model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                temperature=temperature if do_sample else 1.0,
+                do_sample=do_sample,
+                pad_token_id=self.tokenizer.pad_token_id,
+                eos_token_id=self.tokenizer.eos_token_id,
+                # Enable KV-cache for faster autoregressive decoding
+                use_cache=True,
+            )
+
+            # Decode each sample: only the newly-generated tokens
+            input_lens = inputs["attention_mask"].sum(dim=1)  # Real prompt length per sample
+            for i in range(len(prompts)):
+                sample_ids = outputs[i]
+                prompt_len = input_lens[i].item()
+                # Remove the prompt prefix (including padding)
+                generated_ids = sample_ids[prompt_len:]
+                result = self.tokenizer.decode(
+                    generated_ids,
+                    skip_special_tokens=True,
+                    clean_up_tokenization_spaces=True,
+                )
+                all_results.append(result.strip())
+
+        return all_results

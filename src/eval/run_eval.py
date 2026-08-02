@@ -59,6 +59,7 @@ from src.eval.metrics import (
 )
 from src.eval.loaders.locomo import (
     build_full_dialogue as build_full_dialogue_locomo,
+    build_memory_batched as build_memory_batched_locomo,
     build_memory_from_conversation as build_memory_locomo,
     extract_qa_pairs as extract_locomo_qa,
     load_locomo,
@@ -566,22 +567,61 @@ def evaluate_on_benchmark(
         full_dialogues = []
         token_lengths = []
 
-        for i, qa in enumerate(qa_pairs):
-            if (i + 1) % 50 == 0:
-                print(f"    {i+1}/{len(qa_pairs)}...")
+        # Check if the method supports batched transitions (MSTM inference)
+        method_supports_batch = (
+            method_name == "mstm"
+            and method_kwargs.get("inference_instance") is not None
+        )
+        inference_instance = method_kwargs.get("inference_instance")
 
-            conversation = qa.get("conversation") or qa.get("haystack_sessions", [])
+        if method_supports_batch and inference_instance is not None:
+            # ── Batched memory building ──
+            # Collect all conversations first
+            all_conversations = []
+            for qa in qa_pairs:
+                conv = qa.get("conversation") or qa.get("haystack_sessions", [])
+                all_conversations.append(conv)
 
-            if is_full_context:
-                full_dialogue = build_full(conversation)
-                full_dialogues.append(full_dialogue)
-                memory_indexes.append(None)
-                token_lengths.append(count_tokens_tiktoken(full_dialogue))
+            # Batch-build memory across all conversations
+            if benchmark_name == "locomo":
+                evolved_memories = build_memory_batched_locomo(
+                    all_conversations,
+                    method=inference_instance,
+                    batch_size=method_kwargs.get("batch_size", 16),
+                    verbose=True,
+                )
             else:
-                evolved_memory = build_memory(conversation, method=transition_fn)
-                memory_indexes.append(evolved_memory)
+                # LongMemEval: use batched version
+                from src.eval.loaders.longmemeval import build_memory_batched as build_memory_batched_lme
+                evolved_memories = build_memory_batched_lme(
+                    all_conversations,
+                    method=inference_instance,
+                    batch_size=method_kwargs.get("batch_size", 16),
+                    verbose=True,
+                )
+
+            for mem in evolved_memories:
+                memory_indexes.append(mem)
                 full_dialogues.append(None)
-                token_lengths.append(count_tokens_tiktoken(evolved_memory))
+                token_lengths.append(count_tokens_tiktoken(mem))
+        else:
+            # ── Sequential memory building (original path) ──
+            for i, qa in enumerate(qa_pairs):
+                if (i + 1) % 50 == 0:
+                    print(f"    {i+1}/{len(qa_pairs)}...")
+
+                conversation = qa.get("conversation") or qa.get("haystack_sessions", [])
+
+                if is_full_context:
+                    full_dialogue = build_full(conversation)
+                    full_dialogues.append(full_dialogue)
+                    memory_indexes.append(None)
+                    token_lengths.append(count_tokens_tiktoken(full_dialogue))
+                else:
+                    evolved_memory = build_memory(conversation, method=transition_fn)
+                    memory_indexes.append(evolved_memory)
+                    full_dialogues.append(None)
+                    token_lengths.append(count_tokens_tiktoken(evolved_memory))
 
     avg_memory_tokens = sum(token_lengths) / len(token_lengths) if token_lengths else 0.0
     print(f"    Avg memory tokens: {avg_memory_tokens:.0f}")
@@ -885,6 +925,14 @@ def main():
         help="Load pre-built memory states from JSONL file (skip memory building). "
              "Use with --save-memory from cloud GPU.",
     )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=16,
+        help="Batch size for MSTM inference — number of (M, delta_M) pairs "
+             "processed in one forward pass. Higher = better GPU utilization. "
+             "For 0.6B model on 24GB GPU, 16-32 is safe. Default: 16.",
+    )
 
     args = parser.parse_args()
 
@@ -1012,6 +1060,10 @@ def main():
             method_kwargs["age_threshold"] = args.age_threshold
         elif method_name == "heuristic_consolidation":
             method_kwargs["similarity_threshold"] = args.similarity_threshold
+        elif method_name == "mstm" and extra is not None:
+            # Pass inference instance for batched memory building
+            method_kwargs["inference_instance"] = extra
+            method_kwargs["batch_size"] = args.batch_size
 
         for benchmark_name in benchmarks:
             for k in k_values:

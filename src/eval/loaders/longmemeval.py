@@ -167,6 +167,84 @@ def build_memory_from_conversation(
     return memory
 
 
+def build_memory_batched(
+    conversations_list: List[List[List[Dict]]],
+    method,
+    batch_size: int = 16,
+    verbose: bool = True,
+) -> List[str]:
+    """
+    Build memory states for multiple conversations in parallel by batching
+    transitions at each session step across conversations.
+
+    Args:
+        conversations_list: List of conversations, each conversation is a
+                           list of sessions, each session is a list of turns
+                           with {role, content}.
+        method: An MSTMInference instance (must have transition_batch method)
+                or a callable with transition(M, delta_M) -> M_prime.
+        batch_size: Max samples per forward pass.
+        verbose: Print progress.
+
+    Returns:
+        List of final memory state strings, one per conversation.
+    """
+    n_conversations = len(conversations_list)
+
+    # Extract user messages per session per conversation
+    conv_deltas = []
+    for sessions in conversations_list:
+        deltas = []
+        for session in sessions:
+            user_messages = [
+                turn["content"]
+                for turn in session
+                if turn.get("role") == "user"
+            ]
+            if user_messages:
+                deltas.append("\n".join(user_messages))
+        conv_deltas.append(deltas)
+
+    max_sessions = max(len(d) for d in conv_deltas) if conv_deltas else 0
+    memories = ["" for _ in range(n_conversations)]
+    has_batch = hasattr(method, "transition_batch")
+
+    for step in range(max_sessions):
+        active_indices = []
+        active_memories = []
+        active_deltas = []
+
+        for conv_idx in range(n_conversations):
+            if step < len(conv_deltas[conv_idx]):
+                active_indices.append(conv_idx)
+                active_memories.append(memories[conv_idx])
+                active_deltas.append(conv_deltas[conv_idx][step])
+
+        if not active_indices:
+            continue
+
+        if verbose and (step == 0 or step == max_sessions - 1 or (step + 1) % 10 == 0):
+            print(f"  Session {step+1}/{max_sessions}: "
+                  f"processing {len(active_indices)} conversations in batch")
+
+        if has_batch:
+            new_memories = method.transition_batch(
+                active_memories,
+                active_deltas,
+                batch_size=batch_size,
+            )
+        else:
+            new_memories = [
+                method(m, d)
+                for m, d in zip(active_memories, active_deltas)
+            ]
+
+        for i, conv_idx in enumerate(active_indices):
+            memories[conv_idx] = new_memories[i]
+
+    return memories
+
+
 def build_full_dialogue(conversations: List[List[Dict]]) -> str:
     """
     Build the full conversation dialogue as a flat string (all turns,

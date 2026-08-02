@@ -79,4 +79,6 @@ Generate 100 diverse examples for the "update" category. Each example on a separ
 
 **IMPORTANT:** M_prime should be roughly the same length as M. Use inline annotations. Do NOT add extra bullet points just for historical context.
 
+{domain_instruction}
+
 Output ONLY valid JSONL — one JSON object per line, no markdown fences, no commentary.

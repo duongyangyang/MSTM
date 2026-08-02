@@ -80,4 +80,6 @@ Generate 100 diverse examples for the "forgetting" category. Each example on a s
 
 **CRITICAL:** M_prime must be visibly shorter than M. Count the bullet points — M should lose 1-3 records. For completed events, a one-line summary is enough.
 
+{domain_instruction}
+
 Output ONLY valid JSONL — one JSON object per line, no markdown fences, no commentary.

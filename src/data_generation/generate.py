@@ -25,6 +25,8 @@ from typing import Optional
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from data_generation.domains import DOMAINS, DOMAIN_DESCRIPTIONS, get_domain_prompt_section
+
 
 CATEGORIES = [
     "update",
@@ -210,7 +212,7 @@ def generate_batch(
     return all_examples[:n]
 
 
-def validate_example(example: dict, category: str) -> bool:
+def validate_example(example: dict, category: str, domain: str = None) -> bool:
     """Validate that an example has the required schema."""
     required_keys = {"M", "delta_M", "M_prime", "category"}
     if not all(k in example for k in required_keys):
@@ -258,7 +260,7 @@ def count_existing(file_path: str) -> int:
     return count
 
 
-def print_stats(examples: list[dict], category: str) -> None:
+def print_stats(examples: list[dict], category: str, domain: str = None) -> None:
     """Print summary statistics for a batch of examples."""
     if not examples:
         print("  No examples to summarize.")
@@ -268,7 +270,8 @@ def print_stats(examples: list[dict], category: str) -> None:
     avg_delta_len = sum(len(e["delta_M"]) for e in examples) / len(examples)
     avg_mprime_len = sum(len(e["M_prime"]) for e in examples) / len(examples)
 
-    print(f"\n  Category: {category}")
+    domain_info = f" (domain: {domain})" if domain else ""
+    print(f"\n  Category: {category}{domain_info}")
     print(f"  Total examples: {len(examples)}")
     print(f"  Avg |M|: {avg_m_len:.0f} chars")
     print(f"  Avg |ΔM|: {avg_delta_len:.0f} chars")
@@ -350,6 +353,12 @@ def main():
         dest="continue_gen",
         help="Append to existing file instead of overwriting (generates only up to --n total)",
     )
+    parser.add_argument(
+        "--domain",
+        type=str,
+        default=None,
+        help=f"Specific domain to generate for, or 'all'. Choices: {DOMAINS + ['all']}. If not set, generates diverse domains.",
+    )
 
     args = parser.parse_args()
     verbose = not args.quiet
@@ -363,6 +372,16 @@ def main():
         print(f"Error: unknown category '{args.category}'")
         print(f"Valid categories: {CATEGORIES + ['all']}")
         sys.exit(1)
+
+    # Validate domain argument
+    if args.domain == "all":
+        domains_to_generate = DOMAINS
+    elif args.domain is not None and args.domain not in DOMAINS:
+        print(f"Error: unknown domain '{args.domain}'")
+        print(f"Valid domains: {DOMAINS + ['all']}")
+        sys.exit(1)
+    else:
+        domains_to_generate = [args.domain] if args.domain else [None]
 
     # Initialize client
     base_url_info = f", base_url: {args.base_url}" if args.base_url else ""
@@ -379,82 +398,96 @@ def main():
     all_validated = []
 
     for category in categories:
-        print(f"\n{'='*60}")
-        print(f"Generating category: {category}")
-        print(f"{'='*60}")
+        for domain in domains_to_generate:
+            # Build domain instruction
+            domain_instruction = ""
+            if domain:
+                domain_instruction = get_domain_prompt_section(domain)
 
-        # Determine file path for this category
-        if len(categories) > 1 or out_path.suffix != ".jsonl":
-            file_path = out_path / f"{category}.jsonl"
-        else:
-            file_path = out_path
+            # Determine file path
+            if len(categories) > 1 or out_path.suffix != ".jsonl":
+                if args.domain == "all":
+                    # All domains → single file per category
+                    file_path = out_path / f"{category}.jsonl"
+                elif domain:
+                    file_path = out_path / f"{category}_{domain}.jsonl"
+                else:
+                    file_path = out_path / f"{category}.jsonl"
+            else:
+                file_path = out_path
 
-        # Handle --continue: count existing, adjust target
-        existing_count = 0
-        if args.continue_gen:
-            existing_count = count_existing(str(file_path))
-            if existing_count >= args.n:
-                print(f"  Already have {existing_count} examples (target: {args.n}) — skipping")
-                all_validated.append((category, existing_count))
-                total_examples += existing_count
-                continue
-            print(f"  Found {existing_count} existing examples, generating {args.n - existing_count} more")
+            domain_label = f" ({domain})" if domain else ""
+            print(f"\n{'='*60}")
+            print(f"Generating: {category}{domain_label}")
+            print(f"{'='*60}")
 
-        # Load prompt
-        prompt = load_prompt(category)
-        if verbose:
-            print(f"  Loaded prompt ({len(prompt)} chars)")
+            # Handle --continue: count existing, adjust target
+            existing_count = 0
+            if args.continue_gen:
+                existing_count = count_existing(str(file_path))
+                if existing_count >= args.n:
+                    print(f"  Already have {existing_count} examples (target: {args.n}) — skipping")
+                    all_validated.append((f"{category}{domain_label}", existing_count))
+                    total_examples += existing_count
+                    continue
+                print(f"  Found {existing_count} existing examples, generating {args.n - existing_count} more")
 
-        # Generate examples
-        n_to_generate = args.n - existing_count if args.continue_gen else args.n
-        examples = generate_batch(
-            client,
-            prompt,
-            n=n_to_generate,
-            model=args.model,
-            temperature=args.temperature,
-            batch_size=args.batch_size,
-            verbose=verbose,
-            output_path=str(file_path),
-            append=args.continue_gen,
-        )
+            # Load prompt
+            prompt = load_prompt(category)
+            prompt = prompt.replace("{domain_instruction}", domain_instruction)
+            if verbose:
+                print(f"  Loaded prompt ({len(prompt)} chars)")
+                if domain:
+                    print(f"  Domain: {domain}")
 
-        # Validate
-        if args.validate:
-            valid = [e for e in examples if validate_example(e, category)]
-            invalid_count = len(examples) - len(valid)
-            if invalid_count > 0:
-                print(f"  ⚠️  {invalid_count} examples failed validation, removed")
-            examples = valid
-        else:
-            # Still assign category if missing
-            for e in examples:
-                if "category" not in e:
-                    e["category"] = category
+            # Generate examples
+            n_to_generate = args.n - existing_count if args.continue_gen else args.n
+            examples = generate_batch(
+                client,
+                prompt,
+                n=n_to_generate,
+                model=args.model,
+                temperature=args.temperature,
+                batch_size=args.batch_size,
+                verbose=verbose,
+                output_path=str(file_path),
+                append=args.continue_gen,
+            )
 
-        # Print stats
-        print_stats(examples, category)
+            # Validate
+            if args.validate:
+                valid = [e for e in examples if validate_example(e, category)]
+                invalid_count = len(examples) - len(valid)
+                if invalid_count > 0:
+                    print(f"  ⚠️  {invalid_count} examples failed validation, removed")
+                examples = valid
+            else:
+                for e in examples:
+                    if "category" not in e:
+                        e["category"] = category
 
-        # Final save: overwrite with validated-only data
-        # For --continue, preserve existing validated data from previous runs
-        if args.continue_gen:
-            existing = []
-            if Path(file_path).exists():
-                with open(file_path, "r", encoding="utf-8") as f:
-                    for line in f:
-                        line = line.strip()
-                        if line:
-                            try:
-                                existing.append(json.loads(line))
-                            except json.JSONDecodeError:
-                                continue
-            all_examples_final = existing + examples
-        else:
-            all_examples_final = examples
+            # Print stats
+            print_stats(examples, category, domain)
 
-        save_examples(all_examples_final, str(file_path), append=False)
-        total_examples += len(examples)
-        all_validated.append((category, len(all_examples_final)))
+            # Final save
+            if args.continue_gen:
+                existing = []
+                if Path(file_path).exists():
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        for line in f:
+                            line = line.strip()
+                            if line:
+                                try:
+                                    existing.append(json.loads(line))
+                                except json.JSONDecodeError:
+                                    continue
+                all_examples_final = existing + examples
+            else:
+                all_examples_final = examples
+
+            save_examples(all_examples_final, str(file_path), append=False)
+            total_examples += len(examples)
+            all_validated.append((f"{category}{domain_label}", len(all_examples_final)))
 
     print(f"\n{'='*60}")
     print(f"Generation complete!")

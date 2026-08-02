@@ -80,4 +80,6 @@ Generate 100 diverse examples for the "contradiction_resolution" category. Each 
 
 **IMPORTANT:** M_prime should be roughly the same length as M, not longer. Update only contradicted facts; keep unchanged facts exactly as-is. Use inline "(previously: X)" annotations instead of adding separate "previously" bullet points.
 
+{domain_instruction}
+
 Output ONLY valid JSONL — one JSON object per line, no markdown fences, no commentary.

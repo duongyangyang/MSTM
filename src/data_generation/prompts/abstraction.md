@@ -79,4 +79,6 @@ Generate 100 diverse examples for the "abstraction" category. Each example on a 
 
 **CRITICAL:** M_prime must be visibly shorter than M. Count the lines — if M has 5 records, M_prime should have 2-3 records. The abstraction replaces the episode list, not supplements it.
 
+{domain_instruction}
+
 Output ONLY valid JSONL — one JSON object per line, no markdown fences, no commentary.
