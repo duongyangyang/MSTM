@@ -118,14 +118,14 @@ class MemoryTransitionDataset(Dataset):
             return_tensors="pt",
         )
 
-        input_ids = full_tokens["input_ids"].squeeze(0)
-        attention_mask = full_tokens["attention_mask"].squeeze(0)
+        input_ids = full_tokens["input_ids"].squeeze(0).tolist()
+        attention_mask = full_tokens["attention_mask"].squeeze(0).tolist()
 
         # Create labels: mask the prompt part (set to -100) so the model
         # only learns to generate M_prime, not the fixed prompt format
         prompt_len = prompt_tokens["input_ids"].shape[1]
-        labels = input_ids.clone()
-        labels[:prompt_len] = -100
+        labels = input_ids.copy()
+        labels[:prompt_len] = [-100] * prompt_len
 
         return {
             "input_ids": input_ids,
