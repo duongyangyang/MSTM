@@ -355,7 +355,11 @@ class MSTMModel:
                 for M, delta_M in zip(batch_M, batch_delta)
             ]
 
-            # Batch-tokenize with padding
+            # Batch-tokenize with LEFT padding (required for decoder-only
+            # batch generation — generated tokens must follow the prompt,
+            # not the padding)
+            original_padding_side = self.tokenizer.padding_side
+            self.tokenizer.padding_side = "left"
             inputs = self.tokenizer(
                 prompts,
                 return_tensors="pt",
@@ -363,6 +367,7 @@ class MSTMModel:
                 truncation=True,
                 max_length=self.max_seq_length,
             ).to(self.device)
+            self.tokenizer.padding_side = original_padding_side
 
             # Batched generation
             outputs = self.model.generate(
@@ -376,17 +381,16 @@ class MSTMModel:
                 use_cache=True,
             )
 
-            # Decode each sample: only the newly-generated tokens
-            input_lens = inputs["attention_mask"].sum(dim=1)  # Real prompt length per sample
+            # Decode each sample: only the newly-generated tokens.
+            # With left-padding, generated tokens are appended after the
+            # full padded input, so slice at input_ids.shape[1].
+            input_len = inputs["input_ids"].shape[1]
             for i in range(len(prompts)):
                 sample_ids = outputs[i]
-                prompt_len = input_lens[i].item()
-                # Remove the prompt prefix (including padding)
-                generated_ids = sample_ids[prompt_len:]
+                generated_ids = sample_ids[input_len:]
                 result = self.tokenizer.decode(
                     generated_ids,
                     skip_special_tokens=True,
-                    clean_up_tokenization_spaces=True,
                 )
                 all_results.append(result.strip())
 
