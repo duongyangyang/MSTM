@@ -37,6 +37,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from tqdm import tqdm
+
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
@@ -367,9 +369,7 @@ def evaluate_transition(
     categories = []
     timings = []
 
-    for i, ex in enumerate(examples):
-        if (i + 1) % 20 == 0:
-            print(f"  Processing {i+1}/{len(examples)}...")
+    for i, ex in enumerate(tqdm(examples, desc="  Processing", unit="ex")):
 
         t_start = time.time()
         predicted = transition_fn(
@@ -606,9 +606,7 @@ def evaluate_on_benchmark(
                 token_lengths.append(count_tokens_tiktoken(mem))
         else:
             # ── Sequential memory building (original path) ──
-            for i, qa in enumerate(qa_pairs):
-                if (i + 1) % 50 == 0:
-                    print(f"    {i+1}/{len(qa_pairs)}...")
+            for i, qa in enumerate(tqdm(qa_pairs, desc="  Building memory", unit="conv")):
 
                 conversation = qa.get("conversation") or qa.get("haystack_sessions", [])
 
@@ -650,9 +648,7 @@ def evaluate_on_benchmark(
         retrieved_token_lengths = []
         detailed_samples = []
 
-        for i, qa in enumerate(qa_pairs):
-            if (i + 1) % 50 == 0:
-                print(f"    Answering {i+1}/{len(qa_pairs)}...")
+        for i, qa in enumerate(tqdm(qa_pairs, desc=f"    {model_name}", unit="qa")):
 
             question = qa["question"]
             ground_truth = qa.get("ground_truth") or qa.get("answer", "")

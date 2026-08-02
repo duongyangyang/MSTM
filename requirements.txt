@@ -22,6 +22,7 @@ pyyaml>=6.0
 nltk>=3.8.0
 numpy>=1.24.0
 tiktoken>=0.7.0
+tqdm>=4.66.0
 
 # Optional — for experiment tracking
 # wandb>=0.16.0
