@@ -17,7 +17,6 @@ See PROPOSAL.md Section 5, TODOLIST.md Phase 4.
 """
 
 import torch
-from pathlib import Path
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
@@ -223,16 +222,14 @@ class MSTMModel:
         instance._compiled = compile_model
 
         print(f"Loading tokenizer from: {path}")
-        instance.tokenizer = AutoTokenizer.from_pretrained(
-            str(Path(path).resolve()),
-        )
+        instance.tokenizer = AutoTokenizer.from_pretrained(path)
 
         if instance.tokenizer.pad_token is None:
             instance.tokenizer.pad_token = instance.tokenizer.eos_token
 
         print(f"Loading model from: {path}")
         instance.model = AutoModelForCausalLM.from_pretrained(
-            str(Path(path).resolve()),
+            path,
             torch_dtype=torch.float16 if device == "cuda" else torch.float32,
             trust_remote_code=True,
             device_map="auto" if device == "cuda" else None,
