@@ -102,7 +102,7 @@ class MemoryTransitionDataset(Dataset):
             for_training=False,
         )
 
-        # Tokenize full prompt with padding to max_length for consistent batch shapes
+        # Tokenize both
         full_tokens = self.tokenizer(
             full_prompt,
             truncation=True,
@@ -110,12 +110,11 @@ class MemoryTransitionDataset(Dataset):
             padding="max_length",
             return_tensors="pt",
         )
-        # Tokenize prompt-only WITHOUT padding to get actual prompt length
         prompt_tokens = self.tokenizer(
             prompt_only,
             truncation=True,
             max_length=self.max_seq_length,
-            padding=False,
+            padding="max_length",
             return_tensors="pt",
         )
 
@@ -127,6 +126,12 @@ class MemoryTransitionDataset(Dataset):
         prompt_len = prompt_tokens["input_ids"].shape[1]
         labels = input_ids.clone()
         labels[:prompt_len] = -100
+
+        return {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "labels": labels,
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -143,6 +148,7 @@ def train(
     batch_size: int = 4,
     learning_rate: float = 2e-5,
     gradient_accumulation_steps: int = 4,
+    warmup_ratio: float = 0.1,
     weight_decay: float = 0.01,
     logging_steps: int = 10,
     eval_steps: int = 100,
@@ -176,6 +182,7 @@ def train(
     from transformers import (
         Trainer,
         TrainingArguments,
+        DataCollatorForLanguageModeling,
     )
 
     output_path = Path(output_dir)
@@ -189,7 +196,7 @@ def train(
         per_device_eval_batch_size=batch_size,
         gradient_accumulation_steps=gradient_accumulation_steps,
         learning_rate=learning_rate,
-        warmup_steps=int(0.1 * epochs * len(train_dataset) / (batch_size * gradient_accumulation_steps)),
+        warmup_ratio=warmup_ratio,
         weight_decay=weight_decay,
         logging_steps=logging_steps,
         eval_strategy="steps" if val_dataset else "no",
@@ -207,13 +214,11 @@ def train(
         remove_unused_columns=True,
     )
 
-    # Data collator — simple custom collator that stacks dicts of tensors
-    def collate_fn(batch):
-        return {
-            key: torch.stack([item[key] for item in batch])
-            for key in batch[0].keys()
-        }
-    data_collator = collate_fn
+    # Data collator
+    data_collator = DataCollatorForLanguageModeling(
+        tokenizer=model.tokenizer,
+        mlm=False,
+    )
 
     # Track training start
     train_start = time.time()

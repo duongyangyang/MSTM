@@ -101,7 +101,6 @@ class MSTMModel:
         lora_alpha: int = 32,
         lora_dropout: float = 0.05,
         max_seq_length: int = 2048,
-        compile_model: bool = False,  # False for training, True for inference
     ):
         """
         Initialize the MSTM model.
@@ -114,13 +113,10 @@ class MSTMModel:
             lora_alpha: LoRA alpha scaling factor.
             lora_dropout: LoRA dropout rate.
             max_seq_length: Maximum sequence length for tokenization.
-            compile_model: Whether to torch.compile the model for faster
-                          inference (2-3x speedup for small models on GPU).
         """
         self.backbone_name = backbone
         self.max_seq_length = max_seq_length
         self.use_lora = use_lora
-        self._compiled = compile_model
 
         if device is None:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -141,7 +137,7 @@ class MSTMModel:
         print(f"Loading model: {backbone} (device: {self.device})")
         self.model = AutoModelForCausalLM.from_pretrained(
             backbone,
-            dtype=torch.float16 if self.device == "cuda" else torch.float32,
+            torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
             trust_remote_code=True,
             device_map="auto" if self.device == "cuda" else None,
         )
@@ -151,20 +147,6 @@ class MSTMModel:
 
         if self.device == "cpu" and not use_lora:
             self.model = self.model.to(self.device)
-
-        # torch.compile for faster inference on GPU
-        if compile_model and self.device == "cuda":
-            print("Compiling model with torch.compile (mode='reduce-overhead')...")
-            try:
-                self.model = torch.compile(
-                    self.model,
-                    mode="reduce-overhead",
-                    fullgraph=False,
-                )
-                print("  Model compiled successfully.")
-            except Exception as e:
-                print(f"  torch.compile failed ({e}), falling back to eager mode.")
-                self._compiled = False
 
     def _apply_lora(self, r: int, alpha: int, dropout: float):
         """Apply LoRA adapters to the model."""
