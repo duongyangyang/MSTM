@@ -1,24 +1,8 @@
-# Data
-data/raw/*
-data/processed/*
-!data/raw/.gitkeep
-!data/processed/.gitkeep
-
-# Results
-results/raw_outputs/*
-!results/raw_outputs/.gitkeep
-
 # Python
 __pycache__/
 *.pyc
 .venv/
 venv/
-
-# Model checkpoints
-*.ckpt
-*.pt
-*.bin
-checkpoints/
 
 # OS
 .DS_Store
