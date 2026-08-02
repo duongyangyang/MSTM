@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "mcp__tavily__tavily_search",
+      "WebFetch(domain:arxiv.org)"
+    ]
+  }
+}
