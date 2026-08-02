@@ -3,17 +3,17 @@
 
 model:
   backbone: Qwen/Qwen3-0.6B
-  max_seq_len: 2048  # data max ~265 tokens, 2048 safe
+  max_seq_len: 512   # data max ~265 tokens, 512 with margin
 
 training:
   method: sft
   learning_rate: 2.0e-5
-  epochs: 5            # 4090 trains ~5 min for 3 epochs, 5 is safe
+  epochs: 5
   lora: true
   lora_r: 16
   lora_alpha: 32
-  batch_size: 8        # 4090 handles 8 easily
-  gradient_accumulation_steps: 1  # no need with batch_size=8
+  batch_size: 4       # dynamic padding, 4 fits easily on 4090
+  gradient_accumulation_steps: 2  # effective batch = 8
   warmup_ratio: 0.1
   weight_decay: 0.01
   fp16: true

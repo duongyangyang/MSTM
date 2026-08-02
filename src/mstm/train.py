@@ -102,19 +102,19 @@ class MemoryTransitionDataset(Dataset):
             for_training=False,
         )
 
-        # Tokenize both
+        # Tokenize both (no padding — DataCollator handles dynamic padding)
         full_tokens = self.tokenizer(
             full_prompt,
             truncation=True,
             max_length=self.max_seq_length,
-            padding="max_length",
+            padding=False,
             return_tensors="pt",
         )
         prompt_tokens = self.tokenizer(
             prompt_only,
             truncation=True,
             max_length=self.max_seq_length,
-            padding="max_length",
+            padding=False,
             return_tensors="pt",
         )
 
