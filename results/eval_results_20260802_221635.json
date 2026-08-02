@@ -1,0 +1,25 @@
+{
+  "results": [],
+  "cost_summary": {
+    "gpu_hours": 0.0,
+    "num_training_examples": 0,
+    "avg_inference_latency_ms": 0.0,
+    "num_inference_samples": 0
+  },
+  "config": {
+    "methods": [
+      "mstm"
+    ],
+    "benchmarks": [
+      "locomo"
+    ],
+    "foundation_models": [
+      "gpt-4o-mini"
+    ],
+    "top_k": [
+      10
+    ],
+    "max_samples": 5,
+    "timestamp": "20260802_221635"
+  }
+}

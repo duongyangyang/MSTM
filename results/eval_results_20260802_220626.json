@@ -1,0 +1,105 @@
+{
+  "results": [
+    {
+      "benchmark": "locomo",
+      "method": "mstm",
+      "model": "gpt-4o-mini",
+      "top_k": 10,
+      "num_samples": 10,
+      "qa": {
+        "f1": 0.0,
+        "bleu_1": 0.0,
+        "rouge_l": 0.0,
+        "rouge_2": 0.0,
+        "meteor": 0.0,
+        "sbert_sim": 0.05851295218162704,
+        "count": 10
+      },
+      "per_category": {
+        "multi_hop": {
+          "em": 0.0,
+          "f1": 0.0,
+          "count": 6,
+          "rouge_l": 0.0
+        },
+        "temporal_reasoning": {
+          "em": 0.0,
+          "f1": 0.0,
+          "count": 1,
+          "rouge_l": 0.0
+        },
+        "single_hop": {
+          "em": 0.0,
+          "f1": 0.0,
+          "count": 3,
+          "rouge_l": 0.0
+        }
+      },
+      "avg_memory_tokens": 484.0,
+      "avg_retrieved_tokens": 484.0,
+      "timestamp": "2026-08-02T22:06:18.925244"
+    },
+    {
+      "benchmark": "locomo",
+      "method": "mstm",
+      "model": "gpt-4o",
+      "top_k": 10,
+      "num_samples": 10,
+      "qa": {
+        "f1": 0.0,
+        "bleu_1": 0.0,
+        "rouge_l": 0.0,
+        "rouge_2": 0.0,
+        "meteor": 0.0,
+        "sbert_sim": 0.05851295218162704,
+        "count": 10
+      },
+      "per_category": {
+        "multi_hop": {
+          "em": 0.0,
+          "f1": 0.0,
+          "count": 6,
+          "rouge_l": 0.0
+        },
+        "temporal_reasoning": {
+          "em": 0.0,
+          "f1": 0.0,
+          "count": 1,
+          "rouge_l": 0.0
+        },
+        "single_hop": {
+          "em": 0.0,
+          "f1": 0.0,
+          "count": 3,
+          "rouge_l": 0.0
+        }
+      },
+      "avg_memory_tokens": 484.0,
+      "avg_retrieved_tokens": 484.0,
+      "timestamp": "2026-08-02T22:06:26.237859"
+    }
+  ],
+  "cost_summary": {
+    "gpu_hours": 0.0,
+    "num_training_examples": 0,
+    "avg_inference_latency_ms": 0.0,
+    "num_inference_samples": 0
+  },
+  "config": {
+    "methods": [
+      "mstm"
+    ],
+    "benchmarks": [
+      "locomo"
+    ],
+    "foundation_models": [
+      "gpt-4o-mini",
+      "gpt-4o"
+    ],
+    "top_k": [
+      10
+    ],
+    "max_samples": null,
+    "timestamp": "20260802_220626"
+  }
+}

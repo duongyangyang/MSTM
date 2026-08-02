@@ -1,0 +1,334 @@
+# Detailed Eval Report
+
+**Method:** `mstm` | **Benchmark:** `locomo/gpt-4o-mini/k=10`
+**Date:** 2026-08-02 22:17:45
+**Samples:** 10
+
+## Summary Metrics
+
+| Metric | Value |
+|---|---|
+| F1 | 0.0000 |
+| BLEU-1 | 0.0000 |
+| ROUGE-L | 0.0000 |
+| ROUGE-2 | 0.0000 |
+| METEOR | 0.0000 |
+| SBERT Sim | 0.0585 |
+
+## Category Distribution
+
+- **multi_hop**: 6
+- **single_hop**: 3
+- **temporal_reasoning**: 1
+
+---
+
+## Sample 0
+
+| Field | Value |
+|---|---|
+| **Category** | `multi_hop` |
+| **Retrieved Tokens** | 480 |
+
+### ❓ Question
+
+> When did Caroline go to the LGBTQ support group?
+
+### 🎯 Ground Truth
+
+```
+7 May 2023
+```
+
+### 🤖 Prediction
+
+```
+I don't have enough information to answer this question.
+```
+
+### 📚 Retrieved Context
+
+```
+- User is a therapist and counselor, specializing in LGBTQ+ mental health - Recently attended a pride parade and felt empowered - Works with clients and supports them in their journey - Has a passion for art and identity expression - Parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children
+```
+
+---
+
+## Sample 1
+
+| Field | Value |
+|---|---|
+| **Category** | `multi_hop` |
+| **Retrieved Tokens** | 480 |
+
+### ❓ Question
+
+> When did Melanie paint a sunrise?
+
+### 🎯 Ground Truth
+
+```
+2022
+```
+
+### 🤖 Prediction
+
+```
+I don't have enough information to answer this question.
+```
+
+### 📚 Retrieved Context
+
+```
+- Has a passion for art and identity expression - Recently attended a pride parade and felt empowered - Parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previo
+```
+
+---
+
+## Sample 2
+
+| Field | Value |
+|---|---|
+| **Category** | `temporal_reasoning` |
+| **Retrieved Tokens** | 480 |
+
+### ❓ Question
+
+> What fields would Caroline be likely to pursue in her educaton?
+
+### 🎯 Ground Truth
+
+```
+Psychology, counseling certification
+```
+
+### 🤖 Prediction
+
+```
+I don't have enough information to answer this question.
+```
+
+### 📚 Retrieved Context
+
+```
+- Works with clients and supports them in their journey - Has a passion for art and identity expression - User is a therapist and counselor, specializing in LGBTQ+ mental health - Parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two c
+```
+
+---
+
+## Sample 3
+
+| Field | Value |
+|---|---|
+| **Category** | `single_hop` |
+| **Retrieved Tokens** | 480 |
+
+### ❓ Question
+
+> What did Caroline research?
+
+### 🎯 Ground Truth
+
+```
+Adoption agencies
+```
+
+### 🤖 Prediction
+
+```
+I don't have enough information to answer this question.
+```
+
+### 📚 Retrieved Context
+
+```
+- Works with clients and supports them in their journey - User is a therapist and counselor, specializing in LGBTQ+ mental health - Has a passion for art and identity expression - Parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two c
+```
+
+---
+
+## Sample 4
+
+| Field | Value |
+|---|---|
+| **Category** | `single_hop` |
+| **Retrieved Tokens** | 480 |
+
+### ❓ Question
+
+> What is Caroline's identity?
+
+### 🎯 Ground Truth
+
+```
+Transgender woman
+```
+
+### 🤖 Prediction
+
+```
+I don't have enough information to answer this question.
+```
+
+### 📚 Retrieved Context
+
+```
+- Has a passion for art and identity expression - User is a therapist and counselor, specializing in LGBTQ+ mental health - Parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of 
+```
+
+---
+
+## Sample 5
+
+| Field | Value |
+|---|---|
+| **Category** | `multi_hop` |
+| **Retrieved Tokens** | 480 |
+
+### ❓ Question
+
+> When did Melanie run a charity race?
+
+### 🎯 Ground Truth
+
+```
+The sunday before 25 May 2023
+```
+
+### 🤖 Prediction
+
+```
+I don't have enough information to answer this question.
+```
+
+### 📚 Retrieved Context
+
+```
+- Recently attended a pride parade and felt empowered - Has a passion for art and identity expression - User is a therapist and counselor, specializing in LGBTQ+ mental health - Works with clients and supports them in their journey - Parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children
+```
+
+---
+
+## Sample 6
+
+| Field | Value |
+|---|---|
+| **Category** | `multi_hop` |
+| **Retrieved Tokens** | 480 |
+
+### ❓ Question
+
+> When is Melanie planning on going camping?
+
+### 🎯 Ground Truth
+
+```
+June 2023
+```
+
+### 🤖 Prediction
+
+```
+I don't have enough information to answer this question.
+```
+
+### 📚 Retrieved Context
+
+```
+- Recently attended a pride parade and felt empowered - Has a passion for art and identity expression - User is a therapist and counselor, specializing in LGBTQ+ mental health - Parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two chi
+```
+
+---
+
+## Sample 7
+
+| Field | Value |
+|---|---|
+| **Category** | `single_hop` |
+| **Retrieved Tokens** | 480 |
+
+### ❓ Question
+
+> What is Caroline's relationship status?
+
+### 🎯 Ground Truth
+
+```
+Single
+```
+
+### 🤖 Prediction
+
+```
+I don't have enough information to answer this question.
+```
+
+### 📚 Retrieved Context
+
+```
+- User is a therapist and counselor, specializing in LGBTQ+ mental health - Works with clients and supports them in their journey - Recently attended a pride parade and felt empowered - Has a passion for art and identity expression - Parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children
+```
+
+---
+
+## Sample 8
+
+| Field | Value |
+|---|---|
+| **Category** | `multi_hop` |
+| **Retrieved Tokens** | 480 |
+
+### ❓ Question
+
+> When did Caroline give a speech at a school?
+
+### 🎯 Ground Truth
+
+```
+The week before 9 June 2023
+```
+
+### 🤖 Prediction
+
+```
+I don't have enough information to answer this question.
+```
+
+### 📚 Retrieved Context
+
+```
+- Recently attended a pride parade and felt empowered - Has a passion for art and identity expression - Works with clients and supports them in their journey - Parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously:
+```
+
+---
+
+## Sample 9
+
+| Field | Value |
+|---|---|
+| **Category** | `multi_hop` |
+| **Retrieved Tokens** | 480 |
+
+### ❓ Question
+
+> When did Caroline meet up with her friends, family, and mentors?
+
+### 🎯 Ground Truth
+
+```
+The week before 9 June 2023
+```
+
+### 🤖 Prediction
+
+```
+I don't have enough information to answer this question.
+```
+
+### 📚 Retrieved Context
+
+```
+- Works with clients and supports them in their journey - Recently attended a pride parade and felt empowered - Parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children (previously: "I'm a painter") — now a parent of two children
+```
+
+---

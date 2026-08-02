@@ -1,0 +1,10 @@
+{"sample_id": 0, "question": "When did Caroline go to the LGBTQ support group?", "ground_truth": "7 May 2023", "prediction": "", "category": "multi_hop", "retrieved_context": "", "retrieved_tokens": 484}
+{"sample_id": 1, "question": "When did Melanie paint a sunrise?", "ground_truth": "2022", "prediction": "", "category": "multi_hop", "retrieved_context": "", "retrieved_tokens": 484}
+{"sample_id": 2, "question": "What fields would Caroline be likely to pursue in her educaton?", "ground_truth": "Psychology, counseling certification", "prediction": "", "category": "temporal_reasoning", "retrieved_context": "", "retrieved_tokens": 484}
+{"sample_id": 3, "question": "What did Caroline research?", "ground_truth": "Adoption agencies", "prediction": "", "category": "single_hop", "retrieved_context": "", "retrieved_tokens": 484}
+{"sample_id": 4, "question": "What is Caroline's identity?", "ground_truth": "Transgender woman", "prediction": "", "category": "single_hop", "retrieved_context": "", "retrieved_tokens": 484}
+{"sample_id": 5, "question": "When did Melanie run a charity race?", "ground_truth": "The sunday before 25 May 2023", "prediction": "", "category": "multi_hop", "retrieved_context": "", "retrieved_tokens": 484}
+{"sample_id": 6, "question": "When is Melanie planning on going camping?", "ground_truth": "June 2023", "prediction": "", "category": "multi_hop", "retrieved_context": "", "retrieved_tokens": 484}
+{"sample_id": 7, "question": "What is Caroline's relationship status?", "ground_truth": "Single", "prediction": "", "category": "single_hop", "retrieved_context": "", "retrieved_tokens": 484}
+{"sample_id": 8, "question": "When did Caroline give a speech at a school?", "ground_truth": "The week before 9 June 2023", "prediction": "", "category": "multi_hop", "retrieved_context": "", "retrieved_tokens": 484}
+{"sample_id": 9, "question": "When did Caroline meet up with her friends, family, and mentors?", "ground_truth": "The week before 9 June 2023", "prediction": "", "category": "multi_hop", "retrieved_context": "", "retrieved_tokens": 484}
