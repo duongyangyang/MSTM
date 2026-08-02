@@ -102,19 +102,19 @@ class MemoryTransitionDataset(Dataset):
             for_training=False,
         )
 
-        # Tokenize both (pad to max_length for consistent batch shapes)
+        # Tokenize both (no padding for prompt_length calculation)
         full_tokens = self.tokenizer(
             full_prompt,
             truncation=True,
             max_length=self.max_seq_length,
-            padding="max_length",
+            padding=False,
             return_tensors="pt",
         )
         prompt_tokens = self.tokenizer(
             prompt_only,
             truncation=True,
             max_length=self.max_seq_length,
-            padding="max_length",
+            padding=False,
             return_tensors="pt",
         )
 
@@ -148,7 +148,6 @@ def train(
     batch_size: int = 4,
     learning_rate: float = 2e-5,
     gradient_accumulation_steps: int = 4,
-    warmup_ratio: float = 0.1,
     weight_decay: float = 0.01,
     logging_steps: int = 10,
     eval_steps: int = 100,
@@ -196,7 +195,7 @@ def train(
         per_device_eval_batch_size=batch_size,
         gradient_accumulation_steps=gradient_accumulation_steps,
         learning_rate=learning_rate,
-        warmup_ratio=warmup_ratio,
+        warmup_steps=int(0.1 * epochs * len(train_dataset) / (batch_size * gradient_accumulation_steps)),
         weight_decay=weight_decay,
         logging_steps=logging_steps,
         eval_strategy="steps" if val_dataset else "no",

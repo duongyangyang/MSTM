@@ -101,7 +101,7 @@ class MSTMModel:
         lora_alpha: int = 32,
         lora_dropout: float = 0.05,
         max_seq_length: int = 2048,
-        compile_model: bool = True,
+        compile_model: bool = False,  # False for training, True for inference
     ):
         """
         Initialize the MSTM model.
@@ -141,7 +141,7 @@ class MSTMModel:
         print(f"Loading model: {backbone} (device: {self.device})")
         self.model = AutoModelForCausalLM.from_pretrained(
             backbone,
-            torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
+            dtype=torch.float16 if self.device == "cuda" else torch.float32,
             trust_remote_code=True,
             device_map="auto" if self.device == "cuda" else None,
         )
@@ -230,7 +230,7 @@ class MSTMModel:
         print(f"Loading model from: {path}")
         instance.model = AutoModelForCausalLM.from_pretrained(
             path,
-            torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+            dtype=torch.float16 if device == "cuda" else torch.float32,
             trust_remote_code=True,
             device_map="auto" if device == "cuda" else None,
         )
