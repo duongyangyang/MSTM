@@ -1,0 +1,26 @@
+# Training config for MSTM SFT — optimized for RTX 4090 (24GB)
+# Usage: python src/mstm/train.py --config configs/mstm_sft_4090.yaml
+
+model:
+  backbone: Qwen/Qwen3-0.6B
+  max_seq_len: 2048  # data max ~265 tokens, 2048 safe
+
+training:
+  method: sft
+  learning_rate: 2.0e-5
+  epochs: 5            # 4090 trains ~5 min for 3 epochs, 5 is safe
+  lora: true
+  lora_r: 16
+  lora_alpha: 32
+  batch_size: 8        # 4090 handles 8 easily
+  gradient_accumulation_steps: 1  # no need with batch_size=8
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  fp16: true
+
+data:
+  train_path: data/processed/train.jsonl
+  val_path: data/processed/val.jsonl
+
+logging:
+  experiment_log_dir: experiments/logs/

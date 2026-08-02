@@ -1,0 +1,29 @@
+# Training config for MSTM SFT
+# Copy this file and customize values per experiment run.
+# See src/mstm/train.py for CLI equivalents.
+
+model:
+  backbone: Qwen/Qwen2.5-0.5B  # Primary SLM (per PROPOSAL.md scoping)
+  max_seq_len: 2048
+
+training:
+  method: sft
+  learning_rate: 2.0e-5
+  epochs: 3
+  lora: true                    # Parameter-efficient fine-tuning
+  lora_r: 16
+  lora_alpha: 32
+  batch_size: 4
+  gradient_accumulation_steps: 4
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  fp16: true
+
+data:
+  train_path: ../data/processed/train.jsonl
+  val_path: ../data/processed/val.jsonl
+
+logging:
+  experiment_log_dir: ../experiments/logs/
+  # Log every experiment run here (config, date, results, git commit)
+  # per TODOLIST.md "Cross-cutting" conventions.
