@@ -1,0 +1,23 @@
+{
+  "train_runtime": 1907.5251,
+  "train_samples_per_second": 22.34285694083247,
+  "train_steps_per_second": 0.7,
+  "total_flos": 5.90050492416e+16,
+  "train_loss": 0.9603365042682891,
+  "epoch": 5.0,
+  "wall_clock_hours": 0.5299978735049565,
+  "gpu_hours": 0.5299978735049565,
+  "num_training_examples": 8526,
+  "timestamp": "2026-08-02T22:46:59.267577",
+  "config": {
+    "epochs": 5,
+    "batch_size": 8,
+    "learning_rate": 2e-05,
+    "gradient_accumulation_steps": 4,
+    "warmup_ratio": 0.1,
+    "weight_decay": 0.01,
+    "backbone": "Qwen/Qwen3-0.6B",
+    "train_examples": 8526,
+    "val_examples": 1065
+  }
+}

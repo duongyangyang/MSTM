@@ -1,7 +1,7 @@
 {
   "input_dir": "data/raw",
-  "total_loaded": 8339,
-  "total_valid": 8338,
+  "total_loaded": 10659,
+  "total_valid": 10658,
   "split_ratios": {
     "train": 0.8,
     "val": 0.1,
@@ -9,38 +9,38 @@
   },
   "seed": 42,
   "splits": {
-    "train": 6670,
-    "val": 834,
-    "test": 834
+    "train": 8526,
+    "val": 1065,
+    "test": 1067
   },
   "category_distribution": {
     "overall": {
-      "abstraction": 1650,
-      "consolidation": 1844,
-      "contradiction_resolution": 1559,
-      "forgetting": 1459,
-      "update": 1826
+      "abstraction": 2150,
+      "consolidation": 1954,
+      "contradiction_resolution": 2241,
+      "forgetting": 2339,
+      "update": 1974
     },
     "train": {
-      "update": 1461,
-      "abstraction": 1320,
-      "forgetting": 1167,
-      "contradiction_resolution": 1247,
-      "consolidation": 1475
+      "abstraction": 1720,
+      "update": 1579,
+      "forgetting": 1871,
+      "contradiction_resolution": 1793,
+      "consolidation": 1563
     },
     "val": {
-      "update": 183,
-      "contradiction_resolution": 156,
-      "abstraction": 165,
-      "forgetting": 146,
-      "consolidation": 184
+      "forgetting": 234,
+      "contradiction_resolution": 224,
+      "abstraction": 215,
+      "consolidation": 195,
+      "update": 197
     },
     "test": {
-      "update": 182,
-      "abstraction": 165,
-      "forgetting": 146,
-      "consolidation": 185,
-      "contradiction_resolution": 156
+      "update": 198,
+      "contradiction_resolution": 224,
+      "consolidation": 196,
+      "forgetting": 234,
+      "abstraction": 215
     }
   }
 }
