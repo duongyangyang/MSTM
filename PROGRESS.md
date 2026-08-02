@@ -12,7 +12,7 @@ Living status tracker. Update this at the end of each day (or each sync point). 
 
 *Update this line every sync point:*
 
-**Day:** `4 / 14` **Current phase:** `Phase 3 (A-MEM pipeline refactor — retrieval, 6 metrics, foundation model sweep)` **Overall risk:** 🟢 on track
+**Day:** `5 / 14` **Current phase:** `Phase 4/5 (MSTM training completed, eval pipeline debugging)` **Overall risk:** 🟡 minor — memory quality TBD after full eval
 
 ---
 
@@ -40,8 +40,8 @@ Living status tracker. Update this at the end of each day (or each sync point). 
 | 6 | Build evaluation harness | AI | ✅ | metrics.py upgraded with ROUGE-L, per-category, transition-quality, MQ, LLM-consistency; run_eval.py upgraded with --mode transition, per-category aggregation, MQ metric. Two-track eval (benchmark QA + internal transition). See Day 3 log. |
 | 7 | Baseline 1 (Static Memory) smoke test | AI → Human debug | ⬜ | static_memory.py implemented; needs human to run smoke test |
 | 8 | Baselines 2–4 | AI | ✅ | time_decay.py, heuristic_consolidation.py, llm_based.py implemented |
-| 9 | Pilot MSTM checkpoint | Human (train) | ⬜ | model.py, train.py, inference.py implemented; label masking fixed; needs human to run training |
-| 10 | Final MSTM training | Human (train) | ⬜ | |
+| 9 | Pilot MSTM checkpoint | Human (train) | ✅ | Trained on RTX 4090D 24GB, Qwen3-0.6B + LoRA, 5 epochs, batch_size=16, ~30min. Checkpoint at experiments/checkpoints/mstm_4090 |
+| 10 | Final MSTM training | Human (train) | ✅ | Same as pilot — dataset size sufficient, config finalized (mstm_sft_4090.yaml). May retrain if dataset changes. |
 | 11 | A-MEM / AgeMem reproduction | Human | ⬜ | |
 | 12 | Master results table | AI → Human verify | ⬜ | |
 | 13 | RQ1–RQ3 analysis | AI | ⬜ | |
@@ -75,6 +75,21 @@ Living status tracker. Update this at the end of each day (or each sync point). 
 ## Log
 
 *Append one entry per sync point or end-of-day. Newest at the top.*
+
+### Day 5 — MSTM Training Complete + Inference Bug Fixes
+- **MSTM training completed:** Qwen3-0.6B + LoRA (r=16, alpha=32), 5 epochs, batch_size=16, RTX 4090D 24GB, ~30min. Checkpoint saved at `experiments/checkpoints/mstm_4090`.
+- **Batch inference for GPU utilization:** Added `generate_batch()` to `model.py` — processes multiple (M, delta_M) pairs in one forward pass. Left-padding for decoder-only batch generation. GPU utilization: 20%→80%.
+- **`build_memory_batched()` added to loaders:** locomo.py + longmemeval.py — batches memory building across conversations at each session step. tqdm progress bars added throughout eval pipeline.
+- **torch.compile disabled for inference:** `mode='reduce-overhead'` used CUDA graphs that recompiled at every session step (input shapes change as memory grows) → 17s/step. Fix: `compile_model=False` default in `MSTMInference`. Speed: ~1-2s/step.
+- **repetition_penalty fix:** Model generated infinite repetition loops (`"Parent of two children... — now a parent..."` repeated 500+ times). Root cause: greedy decoding (temp=0.0) without repetition penalty. Fix: `repetition_penalty=1.15` in both `generate()` + `generate_batch()`. Verified locally — clean, non-repeating output.
+- **max_new_tokens reduced:** 512→256 in `MSTMInference` — memory states are compact, don't need 512 tokens.
+- **eval pipeline bugs fixed (3):**
+  1. `is_full_context` bug: `any(fd is not None for fd in full_dialogues)` — empty string `""` ≠ None, treated as full context → retrieved context always empty. Fixed to `any(fd for fd in full_dialogues)` (truthy check).
+  2. `--load-memory` required checkpoint: `load_method("mstm")` tried to load checkpoint even when only loading pre-built memory. Fixed: skip method loading when `--load-memory` is set.
+  3. API key default: `os.environ.get("OPENAI_API_KEY", "ollama")` sent "ollama" to OpenAI API for GPT models. Fixed: GPT models require real OPENAI_API_KEY; "ollama" fallback only for Ollama models.
+- **Cloud→local eval workflow established:** train on cloud GPU → `--save-memory` to JSONL → tar + download → `--load-memory` eval locally with GPT-4o-mini/GPT-4o.
+- **Memory quality verified:** Local test shows distinct, non-repeating memory states for different inputs (Caroline vs Melanie). Model correctly extracts, updates, and consolidates information.
+- **Next:** Re-run memory building on cloud with fixed code, download, run full eval on both benchmarks.
 
 ### Day 3 — Eval Pipeline Upgrade + Doc Sync
 - **Regenerated dataset verified:** Compression ratios fixed — abstraction 1.20→0.624, contradiction 0.817, consolidation 0.756, forgetting 0.486, update 0.882. All < 1.0. Sample quality confirmed.
