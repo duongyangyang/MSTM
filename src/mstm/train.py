@@ -207,9 +207,13 @@ def train(
         remove_unused_columns=True,
     )
 
-    # Data collator — None uses default collator (just stacks tensors).
-    # Since dataset uses padding="max_length", all samples have same shape.
-    data_collator = None
+    # Data collator — simple custom collator that stacks dicts of tensors
+    def collate_fn(batch):
+        return {
+            key: torch.stack([item[key] for item in batch])
+            for key in batch[0].keys()
+        }
+    data_collator = collate_fn
 
     # Track training start
     train_start = time.time()
