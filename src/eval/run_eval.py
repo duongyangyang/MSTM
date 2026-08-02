@@ -117,7 +117,16 @@ def get_reader_client(model_name: str, api_key: str = None, base_url: str = None
         model_id, default_base_url, needs_large_ctx = model_name, None, False
 
     resolved_base_url = base_url or default_base_url
-    resolved_api_key = api_key or os.environ.get("OPENAI_API_KEY", "ollama")
+    # GPT models require real API key; Ollama uses "ollama" as placeholder
+    if resolved_base_url is None:
+        resolved_api_key = api_key or os.environ.get("OPENAI_API_KEY", "")
+        if not resolved_api_key:
+            raise ValueError(
+                f"OPENAI_API_KEY environment variable is required for {model_name}. "
+                "Set it with: export OPENAI_API_KEY=sk-..."
+            )
+    else:
+        resolved_api_key = api_key or os.environ.get("OPENAI_API_KEY", "ollama")
 
     client = OpenAI(
         api_key=resolved_api_key,
@@ -558,7 +567,7 @@ def evaluate_on_benchmark(
             count_tokens_tiktoken(mem if mem else fd)
             for mem, fd in zip(memory_indexes, full_dialogues)
         ]
-        is_full_context = any(fd is not None for fd in full_dialogues)
+        is_full_context = any(fd for fd in full_dialogues)  # truthy: non-empty string
     else:
         print(f"  Building memory for {len(qa_pairs)} conversations...")
 
@@ -1044,12 +1053,18 @@ def main():
         print(f"# Method: {method_name}")
         print(f"{'#'*60}")
 
-        try:
-            transition_fn, extra = load_method(method_name, args.checkpoint)
-        except Exception as e:
-            print(f"  ERROR loading method '{method_name}': {e}")
-            print(f"  Skipping...")
-            continue
+        if args.load_memory:
+            # When loading pre-built memory, skip checkpoint loading entirely
+            # (transition_fn won't be called — memory building phase is skipped)
+            transition_fn = None
+            extra = None
+        else:
+            try:
+                transition_fn, extra = load_method(method_name, args.checkpoint)
+            except Exception as e:
+                print(f"  ERROR loading method '{method_name}': {e}")
+                print(f"  Skipping...")
+                continue
 
         method_kwargs = {}
         if method_name == "time_decay":

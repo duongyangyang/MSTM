@@ -34,10 +34,10 @@ class MSTMInference:
         self,
         checkpoint_path: str,
         device: str = None,
-        max_new_tokens: int = 512,
+        max_new_tokens: int = 256,
         temperature: float = 0.0,
         batch_size: int = 16,
-        compile_model: bool = True,
+        compile_model: bool = False,
     ):
         """
         Initialize the inference wrapper.

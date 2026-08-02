@@ -12,7 +12,7 @@ training:
   lora: true
   lora_r: 16
   lora_alpha: 32
-  batch_size: 16      # 0.6B model fits large batches on 24GB
+  batch_size: 8      # 0.6B model fits large batches on 24GB
   gradient_accumulation_steps: 1  # no accumulation needed
   warmup_ratio: 0.1
   weight_decay: 0.01

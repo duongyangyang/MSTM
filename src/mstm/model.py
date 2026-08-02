@@ -271,6 +271,7 @@ class MSTMModel:
                 do_sample=do_sample,
                 pad_token_id=self.tokenizer.pad_token_id,
                 eos_token_id=self.tokenizer.eos_token_id,
+                repetition_penalty=1.15,
             )
 
         # Decode only the generated part (after the prompt)
@@ -355,6 +356,7 @@ class MSTMModel:
                 do_sample=do_sample,
                 pad_token_id=self.tokenizer.pad_token_id,
                 eos_token_id=self.tokenizer.eos_token_id,
+                repetition_penalty=1.15,
                 # Enable KV-cache for faster autoregressive decoding
                 use_cache=True,
             )
