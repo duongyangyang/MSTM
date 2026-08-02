@@ -176,7 +176,6 @@ def train(
     from transformers import (
         Trainer,
         TrainingArguments,
-        DataCollatorForLanguageModeling,
     )
 
     output_path = Path(output_dir)
@@ -208,11 +207,9 @@ def train(
         remove_unused_columns=True,
     )
 
-    # Data collator
-    data_collator = DataCollatorForLanguageModeling(
-        tokenizer=model.tokenizer,
-        mlm=False,
-    )
+    # Data collator — None uses default collator (just stacks tensors).
+    # Since dataset uses padding="max_length", all samples have same shape.
+    data_collator = None
 
     # Track training start
     train_start = time.time()
