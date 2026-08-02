@@ -102,14 +102,15 @@ class MemoryTransitionDataset(Dataset):
             for_training=False,
         )
 
-        # Tokenize both (no padding for prompt_length calculation)
+        # Tokenize full prompt with padding to max_length for consistent batch shapes
         full_tokens = self.tokenizer(
             full_prompt,
             truncation=True,
             max_length=self.max_seq_length,
-            padding=False,
+            padding="max_length",
             return_tensors="pt",
         )
+        # Tokenize prompt-only WITHOUT padding to get actual prompt length
         prompt_tokens = self.tokenizer(
             prompt_only,
             truncation=True,
@@ -118,20 +119,14 @@ class MemoryTransitionDataset(Dataset):
             return_tensors="pt",
         )
 
-        input_ids = full_tokens["input_ids"].squeeze(0).tolist()
-        attention_mask = full_tokens["attention_mask"].squeeze(0).tolist()
+        input_ids = full_tokens["input_ids"].squeeze(0)
+        attention_mask = full_tokens["attention_mask"].squeeze(0)
 
         # Create labels: mask the prompt part (set to -100) so the model
         # only learns to generate M_prime, not the fixed prompt format
         prompt_len = prompt_tokens["input_ids"].shape[1]
-        labels = input_ids.copy()
-        labels[:prompt_len] = [-100] * prompt_len
-
-        return {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "labels": labels,
-        }
+        labels = input_ids.clone()
+        labels[:prompt_len] = -100
 
 
 # ---------------------------------------------------------------------------
